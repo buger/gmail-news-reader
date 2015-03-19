@@ -11,26 +11,22 @@ var Google = (function(){
     gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: true}, handleAuthResult);
   }
 
-  function signOut(){
-    var iframe = $('<iframe id="logoutframe" src="https://accounts.google.com/logout" style="display: none"></iframe>');
-    iframe.appendTo(document.body)
-    iframe.on('load', function(){
-        window.location.reload();
-    })
+  function loadGmailAPI(callback) {
+    gapi.client.load('gmail', 'v1').then(callback)
   }
 
   function handleAuthResult(authResult) {
-    var authorizeButton = $('#authorize-button');
-    var splash = $('#splash')
-    var spinner = $('#splash .spinner')
+    var authorizeButton = document.getElementById('authorize-button');
+    var splash = document.getElementById('splash');
+    var spinner = document.getElementById('spinner');
 
     if (authResult && !authResult.error) {
-      splash.hide()
-      loadGmailAPI(App.init);
+      splash.style.display = 'none';
+      loadGmailAPI(App.loadMessages);
     } else {
-      authorizeButton.show()
-      spinner.hide()
-      authorizeButton.on('click', handleAuthClick)
+      authorizeButton.style.display = 'block';
+      spinner.style.display = 'none';
+      authorizeButton.onclick = handleAuthClick;
     }
   }
 
@@ -40,31 +36,27 @@ var Google = (function(){
     return false;
   }
 
-  function loadGmailAPI(callback) {
-    gapi.client.load('gmail', 'v1').then(callback);
-  }
-
-  function messageRequest(id, params) {
+  var messageRequest = function(id, params) {
     return gapi.client.request({
       'path': 'gmail/v1/users/me/messages/' + id,
       'params': params
-    })
-  }
+     });
+  };
 
   function listMessages(query, nextPageToken, callback) {
-    request = gapi.client.gmail.users.messages.list({
+    gapi.client.gmail.users.messages.list({
       'userId': 'me',
       'pageToken': nextPageToken,
-      'fields': 'messages/id,nextPageToken',
-      'q': query
+      'q': query,
+      'fields': 'messages/id,nextPageToken'
     }).execute(function(resp){
-      console.warn(resp)
-
       var nextPageToken = resp.nextPageToken;
       var batch = gapi.client.newBatch();
 
       resp.messages.forEach(function(message){
-        batch.add(messageRequest(message.id, { format: 'full' }))
+        if (message) {
+          batch.add(messageRequest(message.id, { format: 'full' }))
+        }
       })
 
       batch.execute(function(resp){
@@ -79,59 +71,69 @@ var Google = (function(){
       'id': messageId,
       'addLabelIds': labelsToAdd,
       'removeLabelIds': labelsToRemove
-    })
+    });
+    request.execute(callback);
+  }
 
-    request.execute(callback)
+  function signOut() {
+    var iframe = $('<iframe id="logoutframe" src="https://accounts.google.com/logout" style="display: none"></iframe>')
+    $(document.body).append(iframe)
+
+    iframe.load(function(){
+      window.location.reload()
+    })
   }
 
   return {
     handleClientLoad: handleClientLoad,
+    signOut: signOut,
     listMessages: listMessages,
-    modifyMessage: modifyMessage,
-    signOut: signOut
+    modifyMessage: modifyMessage
   }
 }())
 
-window.handleClientLoad = Google.handleClientLoad;
+var handleClientLoad = Google.handleClientLoad;
+
 
 var App = (function(){
 
   function init() {
-    $('header .config-filter').html(App.search_filter)
+    $('header .config-filter').html(App.search_filter);
 
     if (!App.mark_read) {
       $('header .config-mark-read').addClass('disabled')
     }
-
-    listMessages()
   }
 
-  function listMessages(nextPageToken) {
+  function loadMessages(nextPageToken){
     App.loading = true
 
-    if (nextPageToken == null) {
+    $('section').append('<div class="spinner"></div>')
+
+    if (!nextPageToken)
       $('section ul').html('')
-    }
-    $('section').append("<div class='spinner'></div>")
 
     Google.listMessages(App.search_filter, nextPageToken, function(messages, nextPageToken){
-      console.warn(messages)
-      App.nextPageToken = nextPageToken
-      App.messages = $.extend(App.messages, messages)
+      App.nextPageToken = nextPageToken;
+      App.messages = $.extend(App.messages, messages);
 
-      renderMessages(messages)
+      renderMessages(messages);
+
+      App.loading = false;
     })
   }
 
-  function renderMessages(messages) {
-    var html = ''
+  function renderMessages(messages){
+    var html = '';
 
     for (k in messages) {
-      html += "<li data-id='"+k+"' class='" + messages[k].result.labelIds.join(' ') + "'>"
+      html += "<li data-id='"+k+"' class='"+messages[k].result.labelIds.join(' ')+"'>"
       html += "<h4>"
-      html += _.find(messages[k].result.payload.headers, 'name', 'Subject').value
+      html += _.result(_.find(messages[k].result.payload.headers, 'name', 'Subject'), 'value')
       html += "</h4>"
-      html += "<p>" + messages[k].result.snippet + "</p>"
+      html += "<p>"
+      html += messages[k].result.snippet
+      html += "</p>"
       html += "<a href='#' class='mark-read'>Mark as read</a>"
       html += "<a href='#' class='mark-unread'>Mark as unread</a>"
       html += "</li>"
@@ -139,17 +141,16 @@ var App = (function(){
 
     $('section ul').append(html)
     $('section .spinner').remove()
-
-    App.loading = false
   }
 
-  function setSearchFilter(filter) {
+  function setSearchFilter(filter){
     App.search_filter = filter
     window.localStorage.search_filter = filter
-    App.listMessages()
+
+    App.loadMessages()
   }
 
-  function setMarkRead(mark_read) {
+  function setMarkReadOption(mark_read){
     App.mark_read = mark_read
     window.localStorage.mark_read = mark_read
   }
@@ -157,21 +158,17 @@ var App = (function(){
   return {
     loading: false,
     nextPageToken: null,
+    mark_read: window.localStorage.mark_read == "false" ? false : true,
     search_filter: window.localStorage.search_filter || "label:unread",
-    mark_read: window.localStorage.mark_read == 'false' ? false : true,
-    messages: {},
+    messages: [],
     init: init,
-    listMessages: listMessages,
+    loadMessages: loadMessages,
     setSearchFilter: setSearchFilter,
-    setMarkRead: setMarkRead
+    setMarkReadOption: setMarkReadOption
   }
 }())
 
-
-$(document).on('click', '.signout', function(){
-  Google.signOut()
-})
-
+$(App.init)
 
 var urlRegex =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
 
@@ -187,63 +184,66 @@ function extractUrlFromText(text) {
   return urls[0]
 }
 
-
-$(document).on('click', 'header .config-filter', function(){
-  var filter = prompt("Please enter search filter, same format as used in Gmail search", App.search_filter)
-
-  if (filter != null) {
-    $(this).html(filter)
-    App.setSearchFilter(filter)
-  }
-})
-
-
-$(document).on('click', 'header .config-mark-read', function(){
-  $(this).toggleClass('disabled');
-  App.setMarkRead(!$(this).hasClass('disabled'))
-})
-
-
-$(document).on('click', 'section li .mark-unread', function(){
+$(document).on('click', 'section li a.mark-read', function(e) {
   var message_id = $(this.parentNode).data('id')
   var message = App.messages[message_id]
 
-  $(this.parentNode).addClass('UNREAD')
-  Google.modifyMessage(message.result.id, ['UNREAD'], [])
-
-  return false;
-})
-
-$(document).on('click', 'section li .mark-read', function(){
-  var message_id = $(this.parentNode).data('id')
-  var message = App.messages[message_id]
-
-  $(this.parentNode).removeClass('UNREAD')
+  $(this.parentNode).removeClass("UNREAD")
   Google.modifyMessage(message.result.id, [], ['UNREAD'])
 
-  return false;
+  return false
 })
 
-$(document).on('click', 'section li', function(){
-  var message_id = $(this).data('id')
+$(document).on('click', 'section li a.mark-unread', function(e) {
+  var message_id = $(this.parentNode).data('id')
   var message = App.messages[message_id]
 
-  var body = message.result.payload.body.data || message.result.payload.parts[1].body.data
+  $(this.parentNode).addClass("UNREAD")
+  Google.modifyMessage(message.result.id, ['UNREAD'], [])
 
-  body = atob(body.replace(/-/g, '+').replace(/_/g, '/'))
+  return false
+})
 
-  window.open(extractUrlFromText(body))
+$(document).on('click', 'section li', function(e) {
+  var message_id = $(e.currentTarget).data('id')
+  var message = App.messages[message_id]
 
   if (App.mark_read) {
-    $(this).removeClass('UNREAD')
     Google.modifyMessage(message.result.id, [], ['UNREAD'])
+    $(e.currentTarget).removeClass('UNREAD')
+  }
+
+  var body = message.result.payload.body.data || message.result.payload.parts[1].body.data
+  body = atob(body.replace(/-/g, '+').replace(/_/g, '/'))
+
+  var url = extractUrlFromText(body);
+
+  window.open(url)
+});
+
+$(document).on('click', 'header .config-filter', function(e){
+  var filter = prompt("Please enter search filter, same format as used in Gmail search", App.search_filter);
+  if (filter != null) {
+    $(this).html(filter)
+
+    App.setSearchFilter(filter);
   }
 })
 
-$(window).scroll(function(){
-  if ($(window).scrollTop() + $(window).height() > $(document).height() - 300) {
+$(document).on('click', 'header .config-mark-read', function(e){
+  $(this).toggleClass('disabled');
+
+  App.setMarkReadOption(!$(this).hasClass('disabled'))
+})
+
+$(document).on('click', 'header .signout', function(e){
+  Google.signOut()
+})
+
+$(window).scroll(function() {
+  if($(window).scrollTop() + $(window).height() > $(document).height() - 300) {
     if (!App.loading && App.nextPageToken) {
-      App.listMessages(App.nextPageToken);
+      App.loadMessages(App.nextPageToken)
     }
   }
-})
+});

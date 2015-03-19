@@ -1,7 +1,6 @@
 * {
   font-family: 'Roboto', sans-serif;
   box-sizing: border-box;
-
   color: #212121;
 }
 
@@ -16,12 +15,8 @@ header {
   padding: 20px;
 }
 
-header .signout {
-  float: right;
-}
-
-header .config-filter {
-  margin-left: 10px;
+header a {
+  color: #727272;
 }
 
 header .config-mark-read {
@@ -33,89 +28,183 @@ header .config-mark-read.disabled {
   color: #727272;
 }
 
-section ul li, section ul {
+header .signout {
+  float: right;
+}
+
+section {
+  width: 100%;
+  height: 100%;
+  padding-bottom: 100px;
+}
+
+section .spinner {
+  margin-top: 100px;
+}
+
+section ul {
   margin: 0;
   padding: 0;
 }
 
-section ul li {
+section li {
   list-style: none;
   padding: 20px;
   cursor: pointer;
   width: 33.33333%;
   height: 150px;
   float: left;
+  background-color: white;
+  position: relative;
   overflow: hidden;
-}
-
-section ul li p {
-  font-weight: 300;
-}
-
-section ul li:hover {
-  background-color: #BBDEFB;
 }
 
 section li * {
   color: #727272;
 }
 
-section li.UNREAD * {
-  color: #212121;
-}
-
-section li a {
+section li .mark-read, section li .mark-unread {
   display: none;
-  text-decoration: none;
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
   font-size: 0.8em;
   color: #727272;
+  text-decoration: none;
 }
 
 section li a:hover {
+  color: #212121;
   text-decoration: underline;
 }
 
-section li:hover .mark-read {
-  display: none;
+section li.UNREAD *, section li.selected * {
+  color: #212121;
+}
+
+section li:hover {
+  background-color: #BBDEFB;
 }
 
 section li:hover .mark-unread {
   display: block;
 }
 
-section li.UNREAD:hover .mark-read {
-  display: block;
+section li:hover .mark-read {
+  display: none;
 }
 
 section li.UNREAD:hover .mark-unread {
   display: none;
 }
 
-#splash {
-  position: fixed;
-  background-color: white;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
+section li.UNREAD:hover .mark-read {
+  display: block;
 }
 
-#splash > div {
-  max-width: 50%;
-  text-align: center;
+section li h4 {
+  margin-bottom: 0px;
+}
+
+section li p {
+  margin-top: 5px;
+  font-weight: 300;
+}
+
+section a.next-page {
+  padding: 50px;
+  float: left;
+  font-size: 2em;
+  text-decoration: none;
+  color: #2196F3;
+}
+
+section a.next-page:hover {
+  text-decoration: underline;
 }
 
 #splash h1 {
   font-size: 3em;
 }
 
+
+#splash {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    z-index: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#splash > div {
+    max-width: 50%;
+    text-align: center;
+    margin-top: -10%;
+}
+
+#splash button {
+  margin: 0 auto;
+}
+
+#splash span {
+  display: block;
+  font-size: 3em;
+}
+
+.btn {
+    border: none;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    background: none;
+    cursor: pointer;
+    padding: 25px 80px;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    outline: none;
+    position: relative;
+    -webkit-transition: all 0.3s;
+    -moz-transition: all 0.3s;
+    transition: all 0.3s;
+}
+
+.btn:after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    -webkit-transition: all 0.3s;
+    -moz-transition: all 0.3s;
+    transition: all 0.3s;
+}
+
+/* Button 1 */
+.btn-1 {
+    border: 3px solid #fff;
+    color: #fff;
+}
+
+.btn-1a {
+    background-color: #2196F3;
+}
+
+/* Button 1a */
+.btn-1a:hover,
+.btn-1a:active {
+    color: #0e83cd;
+    background: #fff;
+    border-color: #2196F3;
+}
+
 .spinner {
-  width: 70px;
-  height: 70px;
-  background-color: #1976D2;
+  width: 72px;
+  height: 72px;
+  background-color: #2196F3;
   clear: both;
 
   margin: 0px auto;
@@ -140,43 +229,4 @@ section li.UNREAD:hover .mark-unread {
     transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
     -webkit-transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
   }
-}
-
-
-
-/* General button style (reset) */
-.btn {
-  border: none;
-  font-family: inherit;
-  font-size: inherit;
-  color: inherit;
-  cursor: pointer;
-  padding: 25px 80px;
-  display: inline-block;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 700;
-  outline: none;
-  position: relative;
-  -webkit-transition: all 0.3s;
-  -moz-transition: all 0.3s;
-  transition: all 0.3s;
-}
-
-/* Button 1 */
-.btn-1 {
-  border: 3px solid #fff;
-  color: #fff;
-}
-
-.btn-1a {
-  background-color: #2196F3;
-}
-
-/* Button 1a */
-.btn-1a:hover,
-.btn-1a:active {
-  color: #0e83cd;
-  background: #fff;
-  border-color: #2196F3;
 }

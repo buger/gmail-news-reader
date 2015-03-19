@@ -13,28 +13,25 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/3.5.0/lodash.min.js"></script>
 
     <script src="app.js"></script>
+    <script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
 </head>
 <body>
     <div id="splash">
-      <div>
-        <h1>News reader based on Gmail</h1>
-        <button id="authorize-button" class="btn btn-1 btn-1a" style="display:none">Authorize</button>
-        <div class="spinner"></div>
-      </div>
+        <div>
+            <h1>News reader based on Gmail</h1>
+            <button id="authorize-button" style="display:none" class="btn btn-1 btn-1a">Authorize</button>
+            <div id="spinner" class="spinner"></div>
+        </div>
     </div>
 
     <header>
-      <label>Search filters:</label><a href="#" class="config-filter"></a>
+        <label>Search filter:</label> <a href="#" class="config-filter">label:unread</a>
 
-      <a href="#" class="config-mark-read">Mark 'read' on click</a>
+        <a href="#" class="config-mark-read">Mark 'read' on click</a>
 
-      <a href="#" class="signout">Signout</a>
+        <a href="#" class="signout">Sign out</a>
     </header>
-
     <section>
-      <ul></ul>
+        <ul></ul>
     </section>
-
-    <script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
-
 </body>
