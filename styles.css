@@ -2,6 +2,7 @@
   font-family: 'Roboto', sans-serif;
   box-sizing: border-box;
   color: #212121;
+  text-rendering: optimizeLegibility;
 }
 
 html, body {
@@ -13,29 +14,59 @@ html, body {
 
 header {
   padding: 20px;
+
+  background-color: #2196F3;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+
+  font-size: 16px;
+
+  position: fixed;
+  width: 100%;
+  left: 0px;
+  top: 0px;
+
+  z-index: 2;
+}
+
+header label {
+  color: #FFFFFF;
 }
 
 header a {
-  color: #727272;
+  color: #BBDEFB;
+  text-decoration: none;
+}
+
+header a:hover {
+  color: #FFFFFF;
+  text-decoration: underline;
 }
 
 header .config-mark-read {
   margin-left: 20px;
+  color: #FFFFFF;
 }
 
 header .config-mark-read.disabled {
   text-decoration: line-through;
-  color: #727272;
+  color: #BBDEFB;
 }
 
 header .signout {
   float: right;
+  color: #FFFFFF;
+}
+
+footer {
+  clear: both;
 }
 
 section {
   width: 100%;
   height: 100%;
+  padding: 0px 5px;
   padding-bottom: 100px;
+  margin-top: 66px;
 }
 
 section .spinner {
@@ -52,25 +83,44 @@ section li {
   padding: 20px;
   cursor: pointer;
   width: 33.33333%;
-  height: 150px;
+  height: 130px;
   float: left;
   background-color: white;
   position: relative;
   overflow: hidden;
+  z-index: 0;
+  border: 5px solid white;
+}
+
+section li:hover {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  z-index: 1;
 }
 
 section li * {
   color: #727272;
 }
 
-section li .mark-read, section li .mark-unread {
+section li a {
   display: none;
   position: absolute;
   bottom: 20px;
-  left: 20px;
   font-size: 0.8em;
   color: #727272;
   text-decoration: none;
+}
+
+section li time {
+  font-size: 0.8em;
+  color: #B6B6B6 !important;
+}
+
+section li a.mark-read, section li a.mark-unread {
+  right: 20px;
+}
+
+section li a.add-star, section li a.remove-star {
+  right: 100px;
 }
 
 section li a:hover {
@@ -78,12 +128,12 @@ section li a:hover {
   text-decoration: underline;
 }
 
-section li.UNREAD *, section li.selected * {
-  color: #212121;
+section li.STARRED {
+  border-color: #FFC107;
 }
 
-section li:hover {
-  background-color: #BBDEFB;
+section li.UNREAD *, section li.selected * {
+  color: #212121;
 }
 
 section li:hover .mark-unread {
@@ -102,8 +152,28 @@ section li.UNREAD:hover .mark-read {
   display: block;
 }
 
+section li:hover .remove-star {
+  display: none;
+}
+
+section li:hover .add-star {
+  display: block;
+}
+
+section li.STARRED:hover .remove-star {
+  display: block;
+}
+
+section li.STARRED:hover .add-star {
+  display: none;
+}
+
+
 section li h4 {
-  margin-bottom: 0px;
+  margin: 0px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 section li p {
@@ -133,7 +203,10 @@ section a.next-page:hover {
     width: 100%;
     height: 100%;
     background-color: white;
-    z-index: 1;
+    z-index: 3;
+
+    top: 0px;
+    left: 0px;
 
     display: flex;
     align-items: center;
@@ -228,5 +301,80 @@ section a.next-page:hover {
   } 100% { 
     transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
     -webkit-transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
+  }
+}
+
+@media screen and (max-width: 1024px) {
+    #splash h1 {
+      font-size: 2em;
+    }
+
+    #splash > div {
+      max-width: 90%;
+    }
+
+    a:hover {
+      text-decoration: none !important;
+    }
+
+    header {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #BBDEFB;
+      padding: 15px;
+    }
+
+    section li .mark-unread {
+      display: block;
+    }
+
+    section li .mark-read {
+      display: none;
+    }
+
+    section li.UNREAD .mark-unread {
+      display: none;
+    }
+
+    section li.UNREAD .mark-read {
+      display: block;
+    }
+
+    section li .remove-star {
+      display: none;
+    }
+
+    section li .add-star {
+      display: block;
+    }
+
+    section li.STARRED .remove-star {
+      display: block;
+    }
+
+    section li.STARRED .add-star {
+      display: none;
+    }
+
+}
+
+@media screen and (max-width: 1024px) and (orientation: landscape) {
+  section li {
+    width: 50%;
+    height: 130px;
+    box-shadow: none !important;
+  }
+}
+
+@media screen and (max-width: 1024px) and (orientation: portrait) {
+  section li {
+    width: 100%;
+    height: auto;
+    box-shadow: none !important;
+  }
+
+  header .config-mark-read, header .signout {
+    display: none;
   }
 }
