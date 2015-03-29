@@ -123,21 +123,39 @@ var App = (function(){
     })
   }
 
+  function prettyDate(d) {
+    var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    return d.getDate() + " " + monthNames[d.getMonth()] + " " + d.getFullYear()
+  }
+
   function renderMessages(messages){
     var html = '';
 
+    var sorted_messages = []
     for (k in messages) {
-      html += "<li data-id='"+k+"' class='"+messages[k].result.labelIds.join(' ')+"'>"
-      html += "<h4>"
-      html += _.result(_.find(messages[k].result.payload.headers, 'name', 'Subject'), 'value')
-      html += "</h4>"
-      html += "<p>"
-      html += messages[k].result.snippet
-      html += "</p>"
+      sorted_messages.push({
+        id: k,
+        date: new Date(_.find(messages[k].result.payload.headers, 'name', 'Date').value),
+        subject: _.find(messages[k].result.payload.headers, 'name', 'Subject').value,
+        snippet: messages[k].result.snippet,
+        labels: messages[k].result.labelIds
+      })
+    }
+
+    sorted_messages = _.sortBy(sorted_messages, 'date').reverse()
+
+    sorted_messages.forEach(function(m){
+      html += "<li data-id='"+m.id+"' class='"+m.labels.join(' ')+"'>"
+      html += "<h4>" + m.subject + "</h4>"
+      html += "<p>" + m.snippet + "</p>"
+      html += "<time>" + prettyDate(m.date) + "</time>"
       html += "<a href='#' class='mark-read'>Mark as read</a>"
       html += "<a href='#' class='mark-unread'>Mark as unread</a>"
+      html += "<a href='#' class='add-star'>Add star</a>"
+      html += "<a href='#' class='remove-star'>Remove star</a>"
       html += "</li>"
-    }
+    })
 
     $('section ul').append(html)
     $('section .spinner').remove()
@@ -184,23 +202,38 @@ function extractUrlFromText(text) {
   return urls[0]
 }
 
-$(document).on('click', 'section li a.mark-read', function(e) {
-  var message_id = $(this.parentNode).data('id')
+function _modifyFlag(node, add, remove) {
+  var message_id = $(node).data('id')
   var message = App.messages[message_id]
 
-  $(this.parentNode).removeClass("UNREAD")
-  Google.modifyMessage(message.result.id, [], ['UNREAD'])
+  if (add.length > 0) {
+    $(node).addClass(add.join(' '))
+    Google.modifyMessage(message.result.id, add, [])
+  }
 
+  if (remove.length > 0) {
+    $(node).removeClass(remove.join(' '))
+    Google.modifyMessage(message.result.id, [], remove)
+  }
+}
+
+$(document).on('click', 'section li a.mark-read', function(e) {
+  _modifyFlag(this.parentNode, [], ["UNREAD"])
   return false
 })
 
 $(document).on('click', 'section li a.mark-unread', function(e) {
-  var message_id = $(this.parentNode).data('id')
-  var message = App.messages[message_id]
+  _modifyFlag(this.parentNode, ["UNREAD"], [])
+  return false
+})
 
-  $(this.parentNode).addClass("UNREAD")
-  Google.modifyMessage(message.result.id, ['UNREAD'], [])
+$(document).on('click', 'section li a.remove-star', function(e) {
+  _modifyFlag(this.parentNode, [], ["STARRED"])
+  return false
+})
 
+$(document).on('click', 'section li a.add-star', function(e) {
+  _modifyFlag(this.parentNode, ["STARRED"], [])
   return false
 })
 
